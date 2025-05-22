@@ -1,12 +1,11 @@
 const express = require("express");
-const {userCreateRouter} = require('./Routers/UserR.js')
-const {projectSubmissionRouter} = require('./Routers/ProjectSubmissionR.js')
-const {ProjectForStudentsRoute} = require('./Routers/ProjectsR.js')
+const {userFeedbackRoute} = require('./Routes/UserFeedbackR')
+
 
 // const {fileUploader}=require('./Routers/fileUploader.js')
 const AllRouters = express.Router();
 
-AllRouters.use('/users',userFeedback)
-AllRouters.use('/admin',adminDashboard)
+AllRouters.use('/users',userFeedbackRoute)
+
 
 module.exports={AllRouters}
