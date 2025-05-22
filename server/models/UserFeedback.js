@@ -1,5 +1,3 @@
-
-
 module.exports = (sequelize, DataTypes) => {
   const UserFeedback = sequelize.define(
     "UserFeedback",
@@ -45,6 +43,10 @@ module.exports = (sequelize, DataTypes) => {
       comments: {
         type: DataTypes.TEXT,
         allowNull: true,
+      },
+      ip: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
     },
     {

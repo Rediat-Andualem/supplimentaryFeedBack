@@ -4,7 +4,7 @@ import { axiosInstance } from "../../utility/axiosInstance";
 import { VscFeedback } from "react-icons/vsc";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaCheckCircle } from "react-icons/fa";
 
 function FormComponent() {
   const [feedbackData, setFeedbackData] = useState({
@@ -16,7 +16,8 @@ function FormComponent() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false); // modal control
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submissionBlocked, setSubmissionBlocked] = useState(false); // Blocks form if limit hit
 
   const handleFeedbackChange = (e) => {
     setFeedbackData({
@@ -27,15 +28,23 @@ function FormComponent() {
 
   const confirmSubmission = (e) => {
     e.preventDefault();
+    if (submissionBlocked) {
+      toast.error("🚫 You have reached the monthly feedback submission limit.");
+      return;
+    }
     setShowConfirm(true);
   };
+
+  const cancelSubmission = () => setShowConfirm(false);
 
   const handleSubmitFeedback = async () => {
     setShowConfirm(false);
     setLoading(true);
+
     try {
       await axiosInstance.post("/feedback/submitFeedbacks", feedbackData);
-      toast.success("Feedback submitted successfully!");
+
+      toast.success("✅ Feedback submitted successfully!");
       setFeedbackData({
         courseSelected: "",
         Phase: "",
@@ -44,27 +53,34 @@ function FormComponent() {
         comments: "",
       });
     } catch (err) {
-      console.error(err);
-      toast.error(err?.response?.data?.message || "Failed to submit feedback.");
+      console.error("Feedback submission error:", err);
+      const status = err?.response?.status;
+
+      if (status === 429) {
+        setSubmissionBlocked(true);
+        toast.error("🚫 Monthly feedback limit (35) reached. Try again next month.");
+      } else {
+        const message =
+          err?.response?.data?.message || "❌ Failed to submit feedback. Please try again later.";
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  const cancelSubmission = () => setShowConfirm(false);
 
   return (
     <div className="loginSignUp">
       <form onSubmit={confirmSubmission}>
         <h4>Submit Your Feedback</h4>
 
-   
         <div className="form-input">
           <select
             name="courseSelected"
             value={feedbackData.courseSelected}
             onChange={handleFeedbackChange}
             required
+            disabled={submissionBlocked}
           >
             <option value="">Select Course</option>
             <option value="PowerBI">PowerBI</option>
@@ -82,6 +98,7 @@ function FormComponent() {
             value={feedbackData.Phase}
             onChange={handleFeedbackChange}
             required
+            disabled={submissionBlocked}
           >
             <option value="">Select Phase</option>
             <option value="PHASE-1">Phase 1</option>
@@ -97,6 +114,7 @@ function FormComponent() {
             value={feedbackData.FeedBackOn}
             onChange={handleFeedbackChange}
             required
+            disabled={submissionBlocked}
           >
             <option value="">Feedback On</option>
             <option value="courseDelivery">Course Delivery</option>
@@ -116,6 +134,7 @@ function FormComponent() {
             value={feedbackData.ImprovementLabel}
             onChange={handleFeedbackChange}
             required
+            disabled={submissionBlocked}
           >
             <option value="">Improvement Level</option>
             <option value="High">High</option>
@@ -134,11 +153,12 @@ function FormComponent() {
             rows={8}
             maxLength={700}
             required
+            disabled={submissionBlocked}
           />
         </div>
 
         <div className="btn-login">
-          <button type="submit" disabled={loading}>
+          <button type="submit" disabled={loading || submissionBlocked}>
             {loading ? "Submitting..." : "Submit Feedback"} <VscFeedback />
           </button>
         </div>
@@ -149,14 +169,25 @@ function FormComponent() {
         <div className="modal-overlay">
           <div className="modal-box">
             <h3 className="text-underline">Confirm Your Submission</h3>
-            <p><strong>Note:</strong> These are your feedback main points. Make sure you selected the right course and phase.</p>
+            <p>
+              <strong>Note:</strong> These are your feedback main points. Make sure you selected the
+              right course and phase.
+            </p>
             <ul className="modal-summary">
-              <li><FaCheckCircle /> Course Selected: {feedbackData.courseSelected}</li>
-              <li><FaCheckCircle /> Phase: {feedbackData.Phase}</li>
+              <li>
+                <FaCheckCircle /> Course Selected: {feedbackData.courseSelected}
+              </li>
+              <li>
+                <FaCheckCircle /> Phase: {feedbackData.Phase}
+              </li>
             </ul>
             <div className="modal-actions">
-              <button className="confirm-btn" onClick={handleSubmitFeedback}>Confirm & Submit</button>
-              <button className="cancel-btn" onClick={cancelSubmission}>Cancel</button>
+              <button className="confirm-btn" onClick={handleSubmitFeedback}>
+                Confirm & Submit
+              </button>
+              <button className="cancel-btn" onClick={cancelSubmission}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>

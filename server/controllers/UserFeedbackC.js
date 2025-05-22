@@ -1,16 +1,38 @@
 const { UserFeedback } = require("../models");
 
 // 1. Submit Feedback
+const { Op } = require("sequelize");
+
 const submitFeedback = async (req, res) => {
   const { courseSelected, Phase, FeedBackOn, ImprovementLabel, comments } = req.body;
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
   try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // Count submissions in last 30 days from same IP
+    const feedbackCount = await UserFeedback.count({
+      where: {
+        ip,
+        createdAt: {
+          [Op.gte]: thirtyDaysAgo,
+        },
+      },
+    });
+
+    if (feedbackCount >= 35) {
+      return res.status(429).json({
+        message: "You have reached the monthly feedback submission limit (35).",
+      });
+    }
+
     const feedback = await UserFeedback.create({
       courseSelected,
       Phase,
       FeedBackOn,
       ImprovementLabel,
       comments,
+      ip,
     });
 
     res.status(201).json({ message: "Feedback submitted", feedback });
@@ -19,6 +41,7 @@ const submitFeedback = async (req, res) => {
     res.status(500).json({ message: "Server error while submitting feedback" });
   }
 };
+
 
 // 2. Get Feedback with Filtering
 const getFilteredFeedback = async (req, res) => {
