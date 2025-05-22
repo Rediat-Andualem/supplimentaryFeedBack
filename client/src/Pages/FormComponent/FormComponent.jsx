@@ -2,6 +2,10 @@ import { useState } from "react";
 import "./FormComponent.css";
 import { axiosInstance } from "../../utility/axiosInstance";
 import { VscFeedback } from "react-icons/vsc";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+
 function FormComponent() {
   const [feedbackData, setFeedbackData] = useState({
     courseSelected: "",
@@ -12,8 +16,7 @@ function FormComponent() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false); // modal control
 
   const handleFeedbackChange = (e) => {
     setFeedbackData({
@@ -22,15 +25,17 @@ function FormComponent() {
     });
   };
 
-  const handleSubmitFeedback = async (e) => {
+  const confirmSubmission = (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
+    setShowConfirm(true);
+  };
 
+  const handleSubmitFeedback = async () => {
+    setShowConfirm(false);
+    setLoading(true);
     try {
-      await axiosInstance.post("/users/feedbacks", feedbackData);
-      setSuccess("Feedback submitted successfully!");
+      await axiosInstance.post("/feedback/submitFeedbacks", feedbackData);
+      toast.success("Feedback submitted successfully!");
       setFeedbackData({
         courseSelected: "",
         Phase: "",
@@ -40,17 +45,20 @@ function FormComponent() {
       });
     } catch (err) {
       console.error(err);
-      setError(err?.response?.data?.message || "Failed to submit feedback.");
+      toast.error(err?.response?.data?.message || "Failed to submit feedback.");
     } finally {
       setLoading(false);
     }
   };
 
+  const cancelSubmission = () => setShowConfirm(false);
+
   return (
     <div className="loginSignUp">
-      <form onSubmit={handleSubmitFeedback}>
+      <form onSubmit={confirmSubmission}>
         <h4>Submit Your Feedback</h4>
 
+   
         <div className="form-input">
           <select
             name="courseSelected"
@@ -76,10 +84,10 @@ function FormComponent() {
             required
           >
             <option value="">Select Phase</option>
-            <option value="PHASE-1">PHASE-1</option>
-            <option value="PHASE-2">PHASE-2</option>
-            <option value="PHASE-3">PHASE-3</option>
-            <option value="PHASE-4">PHASE-4</option>
+            <option value="PHASE-1">Phase 1</option>
+            <option value="PHASE-2">Phase 2</option>
+            <option value="PHASE-3">Phase 3</option>
+            <option value="PHASE-4">Phase 4</option>
           </select>
         </div>
 
@@ -117,26 +125,44 @@ function FormComponent() {
         </div>
 
         <div className="form-input">
-       <input
-                  name="comments" 
-                  className="forInputFeedback"
-                   placeholder="Any additional comments"
-                    value={feedbackData.comments}
-                      onChange={handleFeedbackChange}
-                    required
-                  />
-
+          <textarea
+            name="comments"
+            className="forInputFeedback"
+            placeholder="Any additional comments (700 characters max)"
+            value={feedbackData.comments}
+            onChange={handleFeedbackChange}
+            rows={8}
+            maxLength={700}
+            required
+          />
         </div>
 
         <div className="btn-login">
           <button type="submit" disabled={loading}>
-            {loading ? "Submitting..." : `Submit Feedback ${<VscFeedback />}`}
+            {loading ? "Submitting..." : "Submit Feedback"} <VscFeedback />
           </button>
         </div>
-
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
       </form>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3 className="text-underline">Confirm Your Submission</h3>
+            <p><strong>Note:</strong> These are your feedback main points. Make sure you selected the right course and phase.</p>
+            <ul className="modal-summary">
+              <li><FaCheckCircle /> Course Selected: {feedbackData.courseSelected}</li>
+              <li><FaCheckCircle /> Phase: {feedbackData.Phase}</li>
+            </ul>
+            <div className="modal-actions">
+              <button className="confirm-btn" onClick={handleSubmitFeedback}>Confirm & Submit</button>
+              <button className="cancel-btn" onClick={cancelSubmission}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
