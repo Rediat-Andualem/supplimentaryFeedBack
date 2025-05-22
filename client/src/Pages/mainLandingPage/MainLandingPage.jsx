@@ -27,7 +27,7 @@ function MainLandingPage() {
           </div>
           <div className="d-sm-none d-md-block col-12 col-md-6 explained">
             <h1 className="text-gradient">
-              Welcome To Evangadi Supplementary Feedback Submission Portal!
+             Welcome to the Evangadi Supplementary Courses Feedback Submission Portal!
             </h1>
             <ul>
               <li>Your feedback is 100% anonymous.</li>
