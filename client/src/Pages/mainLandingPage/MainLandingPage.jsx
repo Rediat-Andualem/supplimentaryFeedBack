@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./MainLandingPage.css";
 import FormComponent from "../FormComponent/FormComponent";
-import feedbackImage from '../../assets/feedbackImage.jpeg'
+import feedbackImage from '../../assets/forFeedbackb.png'
 
 
 
