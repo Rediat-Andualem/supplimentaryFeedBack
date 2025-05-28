@@ -52,8 +52,9 @@ function Header() {
     <Navbar expand="lg" className={` ${styles.forTheNavbar} `}>
       <Container  fluid>
         <Navbar.Brand className={`${styles.forTextColor} m-2`} href="/">
-        
+          <Nav.Link href='/seefeedbacks'  className={`${styles.forTextColor} ${styles.underline}`} >
         <img className={styles.logo} src={logo} alt="logo" />
+          </Nav.Link>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
